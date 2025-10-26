@@ -23,6 +23,7 @@ import { ManageStorePage } from './pages/ManageStorePage';
 import { ProductPage } from './pages/ProductPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RetrievePasswordPage } from './pages/RetrievePasswordPage';
+import { SearchPage } from './pages/SearchPage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { StorePage } from './pages/StorePage';
@@ -106,6 +107,7 @@ function AppContent() {
           }
         />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/store/:storeSlug" element={<StorePage />} />
         <Route path="/category/:categorySlug" element={<CategoryPage />} />
         <Route path="/product/:productId" element={<ProductPage />} />

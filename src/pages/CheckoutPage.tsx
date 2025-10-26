@@ -43,7 +43,7 @@ export function CheckoutPage() {
           store_id: storeId,
           total_amount: storeTotal,
           payment_method: paymentMethod,
-          payment_status: paymentMethod === 'whatsapp' ? 'pending' : 'completed',
+          payment_status: 'completed',
           shipping_address: shippingAddress,
           tracking_number: `LXP${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         })

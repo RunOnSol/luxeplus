@@ -21,11 +21,27 @@ interface Order {
     id: string;
     quantity: number;
     price: number;
+    product_id: string;
     products: {
       name: string;
       images: string[];
     };
   }[];
+}
+
+interface Review {
+  id: string;
+  product_id: string;
+  customer_id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  profiles: {
+    full_name: string;
+  };
+  products: {
+    name: string;
+  };
 }
 
 interface CashoutRequest {
@@ -41,9 +57,10 @@ export function VendorDashboardPage() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [cashoutRequests, setCashoutRequests] = useState<CashoutRequest[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [store, setStore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'orders' | 'cashouts'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'reviews' | 'cashouts'>('orders');
   const [cashoutAmount, setCashoutAmount] = useState('');
   const [showCashoutForm, setShowCashoutForm] = useState(false);
 
@@ -72,7 +89,12 @@ export function VendorDashboardPage() {
 
       setStore(storeRes.data);
 
-      const [ordersRes, cashoutRes] = await Promise.all([
+      const productIds = await supabase
+        .from('products')
+        .select('id')
+        .eq('store_id', storeRes.data.id);
+
+      const [ordersRes, cashoutRes, reviewsRes] = await Promise.all([
         supabase
           .from('orders')
           .select(`
@@ -82,6 +104,7 @@ export function VendorDashboardPage() {
               id,
               quantity,
               price,
+              product_id,
               products(name, images)
             )
           `)
@@ -91,11 +114,23 @@ export function VendorDashboardPage() {
           .from('cashout_requests')
           .select('*')
           .eq('vendor_id', profile.id)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }),
+        productIds.data && productIds.data.length > 0
+          ? supabase
+              .from('reviews')
+              .select(`
+                *,
+                profiles(full_name),
+                products(name)
+              `)
+              .in('product_id', productIds.data.map((p) => p.id))
+              .order('created_at', { ascending: false })
+          : { data: [], error: null }
       ]);
 
       if (ordersRes.data) setOrders(ordersRes.data);
       if (cashoutRes.data) setCashoutRequests(cashoutRes.data);
+      if (reviewsRes.data) setReviews(reviewsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -232,28 +267,39 @@ export function VendorDashboardPage() {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6 border-b">
+      <div className="flex gap-4 mb-6 border-b overflow-x-auto">
         <button
           onClick={() => setActiveTab('orders')}
-          className={`px-4 py-2 font-medium transition ${
+          className={`px-4 py-2 font-medium transition whitespace-nowrap ${
             activeTab === 'orders'
               ? 'border-b-2 border-amber-600 text-amber-600'
               : 'text-gray-600 hover:text-amber-600'
           }`}
         >
           <Package className="w-4 h-4 inline mr-2" />
-          Orders
+          Orders ({orders.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('reviews')}
+          className={`px-4 py-2 font-medium transition whitespace-nowrap ${
+            activeTab === 'reviews'
+              ? 'border-b-2 border-amber-600 text-amber-600'
+              : 'text-gray-600 hover:text-amber-600'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4 inline mr-2" />
+          Reviews ({reviews.length})
         </button>
         <button
           onClick={() => setActiveTab('cashouts')}
-          className={`px-4 py-2 font-medium transition ${
+          className={`px-4 py-2 font-medium transition whitespace-nowrap ${
             activeTab === 'cashouts'
               ? 'border-b-2 border-amber-600 text-amber-600'
               : 'text-gray-600 hover:text-amber-600'
           }`}
         >
           <DollarSign className="w-4 h-4 inline mr-2" />
-          Cashouts
+          Cashouts ({cashoutRequests.length})
         </button>
       </div>
 
@@ -341,6 +387,47 @@ export function VendorDashboardPage() {
           ))}
           {orders.length === 0 && (
             <p className="text-center text-gray-500 py-8">No orders yet</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'reviews' && (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <div key={review.id} className="bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-semibold text-lg">{review.products.name}</h3>
+                  <p className="text-sm text-gray-600">by {review.profiles.full_name}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-lg ${
+                            i < review.rating ? 'text-amber-500' : 'text-gray-300'
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600">({review.rating}/5)</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(review.created_at).toLocaleString()}
+                </p>
+              </div>
+              {review.comment && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-700">{review.comment}</p>
+                </div>
+              )}
+            </div>
+          ))}
+          {reviews.length === 0 && (
+            <p className="text-center text-gray-500 py-8">No reviews yet</p>
           )}
         </div>
       )}
