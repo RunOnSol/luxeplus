@@ -6,7 +6,6 @@ export function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'customer' | 'vendor'>('customer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,7 +18,7 @@ export function SignUpPage() {
     setLoading(true);
 
     try {
-      await signUp(email, password, fullName, role);
+      await signUp(email, password, fullName);
       alert('Account created successfully! Please sign in.');
       navigate('/signin');
     } catch (err: any) {
@@ -58,36 +57,6 @@ export function SignUpPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="John Doe"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Account Type
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setRole('customer')}
-                className={`p-4 border-2 rounded-lg font-medium transition ${
-                  role === 'customer'
-                    ? 'border-amber-600 bg-amber-50 text-amber-700'
-                    : 'border-gray-300 text-gray-700 hover:border-amber-300'
-                }`}
-              >
-                Customer
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('vendor')}
-                className={`p-4 border-2 rounded-lg font-medium transition ${
-                  role === 'vendor'
-                    ? 'border-amber-600 bg-amber-50 text-amber-700'
-                    : 'border-gray-300 text-gray-700 hover:border-amber-300'
-                }`}
-              >
-                Vendor
-              </button>
-            </div>
           </div>
 
           <div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingCart, User, Menu, X, Search, Store, Package, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Search, Store, Package, LogOut, LayoutDashboard, UserCog, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -67,14 +67,43 @@ export function HeaderWithRouter() {
                   Dashboard
                 </Link>
 
-                {profile.role === 'admin' && (
+                {profile.role === 'vendor' && (
                   <Link
-                    to="/admin"
-                    className={`flex items-center gap-2 ${isActive('/admin') ? 'text-amber-600' : 'text-gray-700 hover:text-amber-600'} transition`}
+                    to="/vendor-dashboard"
+                    className={`flex items-center gap-2 ${isActive('/vendor-dashboard') ? 'text-amber-600' : 'text-gray-700 hover:text-amber-600'} transition`}
                   >
-                    <Package className="h-5 w-5" />
-                    Admin
+                    <TrendingUp className="h-5 w-5" />
+                    Orders
                   </Link>
+                )}
+
+                {profile.role === 'customer' && (
+                  <Link
+                    to="/upgrade-vendor"
+                    className={`flex items-center gap-2 ${isActive('/upgrade-vendor') ? 'text-amber-600' : 'text-gray-700 hover:text-amber-600'} transition`}
+                  >
+                    <Store className="h-5 w-5" />
+                    Become Vendor
+                  </Link>
+                )}
+
+                {profile.role === 'admin' && (
+                  <>
+                    <Link
+                      to="/admin"
+                      className={`flex items-center gap-2 ${isActive('/admin') ? 'text-amber-600' : 'text-gray-700 hover:text-amber-600'} transition`}
+                    >
+                      <Package className="h-5 w-5" />
+                      Admin
+                    </Link>
+                    <Link
+                      to="/admin/users"
+                      className={`flex items-center gap-2 ${isActive('/admin/users') ? 'text-amber-600' : 'text-gray-700 hover:text-amber-600'} transition`}
+                    >
+                      <UserCog className="h-5 w-5" />
+                      Users
+                    </Link>
+                  </>
                 )}
 
                 <Link
@@ -177,15 +206,47 @@ export function HeaderWithRouter() {
                   Dashboard
                 </Link>
 
-                {profile.role === 'admin' && (
+                {profile.role === 'vendor' && (
                   <Link
-                    to="/admin"
+                    to="/vendor-dashboard"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-2 w-full text-left text-gray-700 hover:text-amber-600 py-2"
                   >
-                    <Package className="h-5 w-5" />
-                    Admin Panel
+                    <TrendingUp className="h-5 w-5" />
+                    Orders
                   </Link>
+                )}
+
+                {profile.role === 'customer' && (
+                  <Link
+                    to="/upgrade-vendor"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 w-full text-left text-gray-700 hover:text-amber-600 py-2"
+                  >
+                    <Store className="h-5 w-5" />
+                    Become Vendor
+                  </Link>
+                )}
+
+                {profile.role === 'admin' && (
+                  <>
+                    <Link
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 w-full text-left text-gray-700 hover:text-amber-600 py-2"
+                    >
+                      <Package className="h-5 w-5" />
+                      Admin Panel
+                    </Link>
+                    <Link
+                      to="/admin/users"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 w-full text-left text-gray-700 hover:text-amber-600 py-2"
+                    >
+                      <UserCog className="h-5 w-5" />
+                      User Management
+                    </Link>
+                  </>
                 )}
 
                 <Link

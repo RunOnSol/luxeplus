@@ -16,6 +16,9 @@ import { StorePage } from './pages/StorePage';
 import { CategoryPage } from './pages/CategoryPage';
 import { ProductPage } from './pages/ProductPage';
 import { ManageStorePage } from './pages/ManageStorePage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
+import { VendorUpgradePage } from './pages/VendorUpgradePage';
+import { VendorDashboardPage } from './pages/VendorDashboardPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -145,6 +148,33 @@ function AppContent() {
             <AdminRoute>
               <AdminPage />
             </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminUsersPage />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/upgrade-vendor"
+          element={
+            <PrivateRoute>
+              <VendorUpgradePage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/vendor-dashboard"
+          element={
+            <PrivateRoute>
+              <VendorDashboardPage />
+            </PrivateRoute>
           }
         />
 
