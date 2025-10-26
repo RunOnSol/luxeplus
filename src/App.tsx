@@ -1,24 +1,33 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from 'react-router-dom';
+
 import { HeaderWithRouter } from './components/HeaderWithRouter';
+import {
+  AuthProvider,
+  useAuth,
+} from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { AdminPage } from './pages/AdminPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
+import { CartPage } from './pages/CartPage';
+import { CategoryPage } from './pages/CategoryPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { CreateStorePage } from './pages/CreateStorePage';
+import { DashboardPage } from './pages/DashboardPage';
 import { HomePageWithRouter } from './pages/HomePageWithRouter';
+import { ManageStorePage } from './pages/ManageStorePage';
+import { ProductPage } from './pages/ProductPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { RetrievePasswordPage } from './pages/RetrievePasswordPage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
-import { RetrievePasswordPage } from './pages/RetrievePasswordPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { CreateStorePage } from './pages/CreateStorePage';
-import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { AdminPage } from './pages/AdminPage';
 import { StorePage } from './pages/StorePage';
-import { CategoryPage } from './pages/CategoryPage';
-import { ProductPage } from './pages/ProductPage';
-import { ManageStorePage } from './pages/ManageStorePage';
-import { AdminUsersPage } from './pages/AdminUsersPage';
-import { VendorUpgradePage } from './pages/VendorUpgradePage';
 import { VendorDashboardPage } from './pages/VendorDashboardPage';
+import { VendorUpgradePage } from './pages/VendorUpgradePage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -45,7 +54,11 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return profile?.role === 'admin' ? <>{children}</> : <Navigate to="/dashboard" />;
+  return profile?.role === "admin" ? (
+    <>{children}</>
+  ) : (
+    <Navigate to="/dashboard" />
+  );
 }
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
@@ -146,7 +159,11 @@ function AppContent() {
           path="/admin"
           element={
             <AdminRoute>
-              <AdminPage />
+              <AdminPage
+                onNavigate={(page: string) => {
+                  /* handle navigation here */
+                }}
+              />
             </AdminRoute>
           }
         />
