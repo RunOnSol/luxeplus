@@ -4,7 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error("Missing Supabase environment variables");
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -14,9 +14,10 @@ export type Profile = {
   email: string;
   full_name: string | null;
   phone: string | null;
-  role: 'customer' | 'vendor' | 'admin';
+  role: "customer" | "vendor" | "admin";
   avatar_url: string | null;
   created_at: string;
+  available_balance: number;
 };
 
 export type Store = {
@@ -56,9 +57,15 @@ export type Order = {
   customer_id: string;
   store_id: string;
   total_amount: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  payment_method: 'paystack' | 'flutterwave' | 'whatsapp';
-  payment_status: 'pending' | 'completed' | 'failed';
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
+  payment_method: "paystack" | "flutterwave" | "whatsapp";
+  payment_status: "pending" | "completed" | "failed";
   tracking_number: string | null;
   shipping_address: any;
   created_at: string;
@@ -91,15 +98,21 @@ export type OrderTracking = {
   created_at: string;
 };
 
-export async function uploadImage(file: File, bucket: string, path?: string): Promise<string> {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+export async function uploadImage(
+  file: File,
+  bucket: string,
+  path?: string
+): Promise<string> {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Math.random()
+    .toString(36)
+    .substring(2)}-${Date.now()}.${fileExt}`;
   const filePath = path ? `${path}/${fileName}` : fileName;
 
   const { data, error } = await supabase.storage
     .from(bucket)
     .upload(filePath, file, {
-      cacheControl: '3600',
+      cacheControl: "3600",
       upsert: false,
     });
 

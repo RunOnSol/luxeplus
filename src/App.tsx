@@ -192,7 +192,11 @@ function AppContent() {
           path="/vendor-dashboard"
           element={
             <PrivateRoute>
-              <VendorDashboardPage />
+              <VendorDashboardPage
+                onNavigate={(page: string) => {
+                  /* handle navigation here */
+                }}
+              />
             </PrivateRoute>
           }
         />
