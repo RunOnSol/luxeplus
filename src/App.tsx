@@ -28,6 +28,7 @@ import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { StorePage } from './pages/StorePage';
 import { VendorDashboardPage } from './pages/VendorDashboardPage';
+import { VendorPage } from './pages/VendorPage';
 import { VendorUpgradePage } from './pages/VendorUpgradePage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -187,7 +188,18 @@ function AppContent() {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/vendor"
+          element={
+            <PrivateRoute>
+              <VendorPage
+                onNavigate={(page: string) => {
+                  /* handle navigation here */
+                }}
+              />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/vendor-dashboard"
           element={

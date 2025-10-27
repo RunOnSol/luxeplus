@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import {
+  Home,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -83,12 +84,13 @@ export function HeaderWithRouter() {
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               to="/"
-              className={`${
+              className={`flex items-center gap-2 ${
                 isActive("/")
                   ? "text-amber-600"
                   : "text-gray-700 hover:text-amber-600"
               } transition`}
             >
+              <Home className="h-5 w-5" />
               Home
             </Link>
 
@@ -106,7 +108,7 @@ export function HeaderWithRouter() {
                   Dashboard
                 </Link>
 
-                {profile.role === "vendor" && (
+                {profile.role !== "customer" && (
                   <Link
                     to="/vendor-dashboard"
                     className={`flex items-center gap-2 ${
@@ -254,8 +256,9 @@ export function HeaderWithRouter() {
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left text-gray-700 hover:text-amber-600 py-2"
+              className="flex items-center gap-2 w-full text-left text-gray-700 hover:text-amber-600 py-2"
             >
+              <Home className="h-5 w-5" />
               Home
             </Link>
 
@@ -270,7 +273,7 @@ export function HeaderWithRouter() {
                   Dashboard
                 </Link>
 
-                {profile.role === "vendor" && (
+                {profile.role !== "customer" && (
                   <Link
                     to="/vendor-dashboard"
                     onClick={() => setMobileMenuOpen(false)}

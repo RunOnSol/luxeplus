@@ -1,8 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase, Product, Category } from '../lib/supabase';
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  Package,
+  Search,
+  Store,
+} from 'lucide-react';
+import {
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
+
 import { ProductCard } from '../components/ProductCard';
-import { Search, Store, Package } from 'lucide-react';
+import {
+  Category,
+  Product,
+  supabase,
+} from '../lib/supabase';
 
 interface StoreResult {
   id: string;
@@ -15,13 +31,15 @@ interface StoreResult {
 export function SearchPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const query = searchParams.get('q') || '';
+  const query = searchParams.get("q") || "";
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [stores, setStores] = useState<StoreResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'stores'>('products');
+  const [activeTab, setActiveTab] = useState<
+    "products" | "categories" | "stores"
+  >("products");
 
   useEffect(() => {
     if (query) {
@@ -38,21 +56,21 @@ export function SearchPage() {
 
       const [productsRes, categoriesRes, storesRes] = await Promise.all([
         supabase
-          .from('products')
-          .select('*')
-          .eq('is_active', true)
-          .ilike('name', searchTerm)
+          .from("products")
+          .select("*")
+          .eq("is_active", true)
+          .ilike("name", searchTerm)
           .limit(20),
         supabase
-          .from('categories')
-          .select('*')
-          .ilike('name', searchTerm)
+          .from("categories")
+          .select("*")
+          .ilike("name", searchTerm)
           .limit(10),
         supabase
-          .from('stores')
-          .select('*')
-          .eq('is_active', true)
-          .ilike('name', searchTerm)
+          .from("stores")
+          .select("*")
+          .eq("is_active", true)
+          .ilike("name", searchTerm)
           .limit(10),
       ]);
 
@@ -60,7 +78,7 @@ export function SearchPage() {
       if (categoriesRes.data) setCategories(categoriesRes.data);
       if (storesRes.data) setStores(storesRes.data);
     } catch (error) {
-      console.error('Error searching:', error);
+      console.error("Error searching:", error);
     } finally {
       setLoading(false);
     }
@@ -71,8 +89,12 @@ export function SearchPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Search className="h-24 w-24 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700 mb-2">Search LuxePlus</h2>
-          <p className="text-gray-500">Enter a search term to find products, stores, and categories</p>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+            Search LuxePlus
+          </h2>
+          <p className="text-gray-500">
+            Enter a search term to find products, stores, and categories
+          </p>
         </div>
       </div>
     );
@@ -96,39 +118,39 @@ export function SearchPage() {
             Search Results for "{query}"
           </h1>
           <p className="text-gray-600">
-            Found {totalResults} result{totalResults !== 1 ? 's' : ''}
+            Found {totalResults} result{totalResults !== 1 ? "s" : ""}
           </p>
         </div>
 
         <div className="flex gap-4 mb-6 border-b overflow-x-auto">
           <button
-            onClick={() => setActiveTab('products')}
+            onClick={() => setActiveTab("products")}
             className={`px-4 py-2 font-medium transition whitespace-nowrap ${
-              activeTab === 'products'
-                ? 'border-b-2 border-amber-600 text-amber-600'
-                : 'text-gray-600 hover:text-amber-600'
+              activeTab === "products"
+                ? "border-b-2 border-amber-600 text-amber-600"
+                : "text-gray-600 hover:text-amber-600"
             }`}
           >
             <Package className="w-4 h-4 inline mr-2" />
             Products ({products.length})
           </button>
           <button
-            onClick={() => setActiveTab('categories')}
+            onClick={() => setActiveTab("categories")}
             className={`px-4 py-2 font-medium transition whitespace-nowrap ${
-              activeTab === 'categories'
-                ? 'border-b-2 border-amber-600 text-amber-600'
-                : 'text-gray-600 hover:text-amber-600'
+              activeTab === "categories"
+                ? "border-b-2 border-amber-600 text-amber-600"
+                : "text-gray-600 hover:text-amber-600"
             }`}
           >
             <Search className="w-4 h-4 inline mr-2" />
             Categories ({categories.length})
           </button>
           <button
-            onClick={() => setActiveTab('stores')}
+            onClick={() => setActiveTab("stores")}
             className={`px-4 py-2 font-medium transition whitespace-nowrap ${
-              activeTab === 'stores'
-                ? 'border-b-2 border-amber-600 text-amber-600'
-                : 'text-gray-600 hover:text-amber-600'
+              activeTab === "stores"
+                ? "border-b-2 border-amber-600 text-amber-600"
+                : "text-gray-600 hover:text-amber-600"
             }`}
           >
             <Store className="w-4 h-4 inline mr-2" />
@@ -136,7 +158,7 @@ export function SearchPage() {
           </button>
         </div>
 
-        {activeTab === 'products' && (
+        {activeTab === "products" && (
           <div>
             {products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -151,13 +173,15 @@ export function SearchPage() {
             ) : (
               <div className="text-center py-12">
                 <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">No products found matching your search</p>
+                <p className="text-gray-600">
+                  No products found matching your search
+                </p>
               </div>
             )}
           </div>
         )}
 
-        {activeTab === 'categories' && (
+        {activeTab === "categories" && (
           <div>
             {categories.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -165,7 +189,11 @@ export function SearchPage() {
                   <button
                     key={category.id}
                     onClick={() =>
-                      navigate(`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)
+                      navigate(
+                        `/category/${category.name
+                          .toLowerCase()
+                          .replace(/\s+/g, "-")}`
+                      )
                     }
                     className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition group"
                   >
@@ -194,20 +222,28 @@ export function SearchPage() {
             ) : (
               <div className="text-center py-12">
                 <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">No categories found matching your search</p>
+                <p className="text-gray-600">
+                  No categories found matching your search
+                </p>
               </div>
             )}
           </div>
         )}
 
-        {activeTab === 'stores' && (
+        {activeTab === "stores" && (
           <div>
             {stores.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {stores.map((store) => (
                   <button
                     key={store.id}
-                    onClick={() => navigate(`/store/${store.id}`)}
+                    onClick={() =>
+                      navigate(
+                        `/store/${store.name
+                          .toLowerCase()
+                          .replace(/\s+/g, "-")}`
+                      )
+                    }
                     className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden group"
                   >
                     {store.banner_url && (
@@ -250,7 +286,9 @@ export function SearchPage() {
             ) : (
               <div className="text-center py-12">
                 <Store className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">No stores found matching your search</p>
+                <p className="text-gray-600">
+                  No stores found matching your search
+                </p>
               </div>
             )}
           </div>

@@ -86,18 +86,15 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
   const [trackingNotes, setTrackingNotes] = useState("");
 
   useEffect(() => {
-    if (profile?.role === "customer") {
-      alert("Access denied. Vendor account required.");
+    if (profile?.role !== "vendor" && profile?.role !== "admin") {
+      alert("Access denied. Vendor or admin account required.");
       if (onNavigate) {
-        onNavigate("dashboard");
-      } else {
-        navigate("/dashboard");
+        onNavigate("/");
       }
       return;
     }
     loadData();
   }, [profile]);
-
   const loadData = async () => {
     if (!profile) return;
 
@@ -106,6 +103,7 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
         .from("stores")
         .select("*")
         .eq("owner_id", profile.id)
+        .limit(1)
         .maybeSingle();
 
       if (!storeRes.data) {
