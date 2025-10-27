@@ -1,8 +1,21 @@
-import { useEffect, useState } from 'react';
-import { supabase, Order, OrderTracking } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  Clock,
+  MapPin,
+  Package,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Package, MapPin, Clock } from 'lucide-react';
+
+import { useAuth } from '../contexts/AuthContext';
+import {
+  Order,
+  OrderTracking,
+  supabase,
+} from '../lib/supabase';
 
 export function ProfilePage() {
   const { profile } = useAuth();
@@ -14,7 +27,7 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (!profile) {
-      navigate('/signin');
+      navigate("/signin");
       return;
     }
     loadOrders();
@@ -23,15 +36,15 @@ export function ProfilePage() {
   const loadOrders = async () => {
     try {
       const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('customer_id', profile!.id)
-        .order('created_at', { ascending: false });
+        .from("orders")
+        .select("*")
+        .eq("customer_id", profile!.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setOrders(data || []);
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error("Error loading orders:", error);
     } finally {
       setLoading(false);
     }
@@ -40,15 +53,15 @@ export function ProfilePage() {
   const loadTracking = async (orderId: string) => {
     try {
       const { data, error } = await supabase
-        .from('order_tracking')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: true });
+        .from("order_tracking")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       setTracking(data || []);
     } catch (error) {
-      console.error('Error loading tracking:', error);
+      console.error("Error loading tracking:", error);
     }
   };
 
@@ -59,16 +72,16 @@ export function ProfilePage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'shipped':
-        return 'bg-blue-100 text-blue-800';
-      case 'processing':
-        return 'bg-amber-100 text-amber-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      case "shipped":
+        return "bg-blue-100 text-blue-800";
+      case "processing":
+        return "bg-amber-100 text-amber-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -87,16 +100,18 @@ export function ProfilePage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">My Profile</h1>
           <div className="space-y-2">
             <p className="text-gray-700">
-              <span className="font-semibold">Name:</span> {profile?.full_name || 'Not set'}
+              <span className="font-semibold">Name:</span>{" "}
+              {profile?.full_name || "Not set"}
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Email:</span> {profile?.email}
             </p>
             <p className="text-gray-700">
-              <span className="font-semibold">Phone:</span> {profile?.phone || 'Not set'}
+              <span className="font-semibold">Phone:</span>{" "}
+              {profile?.phone || "Not set"}
             </p>
             <p className="text-gray-700">
-              <span className="font-semibold">Account Type:</span>{' '}
+              <span className="font-semibold">Account Type:</span>{" "}
               <span className="capitalize">{profile?.role}</span>
             </p>
           </div>
@@ -110,7 +125,7 @@ export function ProfilePage() {
               <Package className="h-24 w-24 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No orders yet</p>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition"
               >
                 Start Shopping
@@ -122,20 +137,23 @@ export function ProfilePage() {
                 <div key={order.id} className="border rounded-lg p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <p className="font-semibold text-gray-900">
-                          Order #{order.tracking_number}
-                        </p>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                            order.status
-                          )}`}
-                        >
-                          {order.status}
+                      <p className="font-semibold text-gray-900">
+                        Order{" "}
+                        <span className="text-sm">
+                          {" "}
+                          #{order.tracking_number}
                         </span>
-                      </div>
+                      </p>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
+                        {order.status}
+                      </span>
                       <p className="text-gray-600 text-sm mb-1">
-                        Placed on {new Date(order.created_at).toLocaleDateString()}
+                        Placed on{" "}
+                        {new Date(order.created_at).toLocaleDateString()}
                       </p>
                       <p className="text-gray-600 text-sm mb-1">
                         Payment: {order.payment_method} - {order.payment_status}
@@ -162,7 +180,9 @@ export function ProfilePage() {
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Order Tracking</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Order Tracking
+                  </h2>
                   <button
                     onClick={() => setSelectedOrder(null)}
                     className="text-gray-500 hover:text-gray-700"
@@ -173,12 +193,14 @@ export function ProfilePage() {
 
                 <div className="mb-6 p-4 bg-amber-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Tracking Number</p>
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-sm font-bold text-gray-900">
                     {selectedOrder.tracking_number}
                   </p>
                   <p className="text-sm text-gray-600 mt-2">
-                    Order Status:{' '}
-                    <span className="font-semibold capitalize">{selectedOrder.status}</span>
+                    Order Status:{" "}
+                    <span className="font-semibold capitalize">
+                      {selectedOrder.status}
+                    </span>
                   </p>
                 </div>
 
@@ -198,7 +220,9 @@ export function ProfilePage() {
                         )}
                       </div>
                       <div className="flex-1 pb-8">
-                        <p className="font-semibold text-gray-900">{item.status}</p>
+                        <p className="font-semibold text-gray-900">
+                          {item.status}
+                        </p>
                         {item.location && (
                           <p className="text-sm text-gray-600 mt-1">
                             <MapPin className="h-4 w-4 inline mr-1" />
@@ -206,7 +230,9 @@ export function ProfilePage() {
                           </p>
                         )}
                         {item.notes && (
-                          <p className="text-sm text-gray-600 mt-1">{item.notes}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {item.notes}
+                          </p>
                         )}
                         <p className="text-xs text-gray-500 mt-2">
                           {new Date(item.created_at).toLocaleString()}
@@ -219,7 +245,9 @@ export function ProfilePage() {
                 {tracking.length === 0 && (
                   <div className="text-center py-8">
                     <Package className="h-16 w-16 text-gray-300 mx-auto mb-2" />
-                    <p className="text-gray-600">No tracking information available yet</p>
+                    <p className="text-gray-600">
+                      No tracking information available yet
+                    </p>
                   </div>
                 )}
               </div>
