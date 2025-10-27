@@ -66,9 +66,9 @@ interface CashoutRequest {
   created_at: string;
 }
 interface VendorPageProps {
-  onNavigate: (page: string) => void;
+  onNavigate?: (page: string) => void;
 }
-export function VendorDashboardPage({ onNavigate }: VendorPageProps) {
+export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -86,9 +86,13 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps) {
   const [trackingNotes, setTrackingNotes] = useState("");
 
   useEffect(() => {
-    if (profile?.role == "customer") {
+    if (profile?.role === "customer") {
       alert("Access denied. Vendor account required.");
-      onNavigate("dashboard");
+      if (onNavigate) {
+        onNavigate("dashboard");
+      } else {
+        navigate("/dashboard");
+      }
       return;
     }
     loadData();
