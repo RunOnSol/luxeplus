@@ -107,7 +107,7 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
         .maybeSingle();
 
       if (!storeRes.data) {
-        navigate("/vendor");
+        navigate("/create/store");
         return;
       }
 
