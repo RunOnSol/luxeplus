@@ -15,7 +15,7 @@ export function initializePaystack(config: PaymentConfig) {
     const handler = (window as any).PaystackPop.setup({
       key:
         import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
-        "pk_test_d484fae5ae441bc52d644e67632d90cf28e41060",
+        "pk_live_7056927da639ba6d822d6cf8535b55721b936849",
       email: config.email,
       amount: config.amount * 100,
       ref: config.reference,
