@@ -74,7 +74,8 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [cashoutRequests, setCashoutRequests] = useState<CashoutRequest[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [store, setStore] = useState<any>(null);
+  const [stores, setStores] = useState<any[]>([]);
+  const [selectedStore, setSelectedStore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"orders" | "reviews" | "cashouts">(
     "orders"
@@ -93,36 +94,68 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
       }
       return;
     }
-    loadData();
+
+    // loadData without storeId -> pick the first store for this vendor
+    loadData().catch((err) => console.error("Error loading vendor data:", err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
-  const loadData = async () => {
+
+  // NOTE: loadData accepts optional storeId to avoid relying on stale `selectedStore` state.
+  const loadData = async (storeId?: string) => {
     if (!profile) return;
+    setLoading(true);
 
     try {
-      const storeRes = await supabase
+      const storesRes = await supabase
         .from("stores")
         .select("*")
         .eq("owner_id", profile.id)
-        .limit(1)
-        .maybeSingle();
+        .order("created_at", { ascending: false });
 
-      if (!storeRes.data) {
+      if (storesRes.error) throw storesRes.error;
+
+      if (!storesRes.data || storesRes.data.length === 0) {
         navigate("/create/store");
         return;
       }
 
-      setStore(storeRes.data);
+      setStores(storesRes.data);
 
-      const productIds = await supabase
+      // prefer the provided storeId, otherwise current selectedStore (if belongs to owner), else first store
+      let storeToLoad = null as any;
+      if (storeId) {
+        storeToLoad = storesRes.data.find((s: any) => s.id === storeId) || null;
+      }
+
+      if (!storeToLoad) {
+        // if selectedStore exists and is part of storesRes, reuse it
+        if (selectedStore) {
+          storeToLoad =
+            storesRes.data.find((s: any) => s.id === selectedStore.id) || null;
+        }
+      }
+
+      if (!storeToLoad) {
+        storeToLoad = storesRes.data[0];
+      }
+
+      setSelectedStore(storeToLoad);
+
+      // fetch product IDs for this store
+      const productsRes = await supabase
         .from("products")
         .select("id")
-        .eq("store_id", storeRes.data.id);
+        .eq("store_id", storeToLoad.id);
 
-      const [ordersRes, cashoutRes, reviewsRes] = await Promise.all([
-        supabase
-          .from("orders")
-          .select(
-            `
+      if (productsRes.error) throw productsRes.error;
+
+      const productIds = productsRes.data?.map((p: any) => p.id) || [];
+
+      // fetch orders, cashouts and reviews in parallel
+      const ordersQuery = supabase
+        .from("orders")
+        .select(
+          `
             *,
             profiles(full_name, email, phone),
             order_items(
@@ -133,37 +166,46 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
               products(name, images)
             )
           `
-          )
-          .eq("store_id", storeRes.data.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("cashout_requests")
-          .select("*")
-          .eq("vendor_id", profile.id)
-          .order("created_at", { ascending: false }),
-        productIds.data && productIds.data.length > 0
-          ? supabase
-              .from("reviews")
-              .select(
-                `
+        )
+        .eq("store_id", storeToLoad.id)
+        .order("created_at", { ascending: false });
+
+      const cashoutQuery = supabase
+        .from("cashout_requests")
+        .select("*")
+        .eq("vendor_id", profile.id)
+        .order("created_at", { ascending: false });
+
+      const reviewsQuery = productIds.length
+        ? supabase
+            .from("reviews")
+            .select(
+              `
                 *,
                 profiles(full_name),
                 products(name)
               `
-              )
-              .in(
-                "product_id",
-                productIds.data.map((p) => p.id)
-              )
-              .order("created_at", { ascending: false })
-          : { data: [], error: null },
+            )
+            .in("product_id", productIds)
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null });
+
+      const [ordersRes, cashoutRes, reviewsRes] = await Promise.all([
+        ordersQuery,
+        cashoutQuery,
+        reviewsQuery,
       ]);
 
-      if (ordersRes.data) setOrders(ordersRes.data);
-      if (cashoutRes.data) setCashoutRequests(cashoutRes.data);
-      if (reviewsRes.data) setReviews(reviewsRes.data);
+      if (ordersRes && (ordersRes as any).data)
+        setOrders((ordersRes as any).data);
+      if (cashoutRes && (cashoutRes as any).data)
+        setCashoutRequests((cashoutRes as any).data);
+      if (reviewsRes && (reviewsRes as any).data)
+        setReviews((reviewsRes as any).data);
     } catch (error) {
       console.error("Error loading data:", error);
+      // optionally show a user-friendly message
+      // alert("Failed to load vendor data. Check console for details.");
     } finally {
       setLoading(false);
     }
@@ -176,27 +218,32 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
     notes?: string
   ) => {
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from("orders")
         .update({ status: newStatus })
         .eq("id", orderId);
+      if (updateError) throw updateError;
 
-      if (error) throw error;
+      const { error: trackError } = await supabase
+        .from("order_tracking")
+        .insert({
+          order_id: orderId,
+          status: newStatus,
+          location: location || null,
+          notes: notes || `Order status updated to ${newStatus}`,
+        });
 
-      await supabase.from("order_tracking").insert({
-        order_id: orderId,
-        status: newStatus,
-        location: location || null,
-        notes: notes || `Order status updated to ${newStatus}`,
-      });
+      if (trackError) throw trackError;
 
       alert("Order status updated successfully");
       setSelectedOrder(null);
       setTrackingLocation("");
       setTrackingNotes("");
-      loadData();
+      // refresh data for the currently selected store
+      if (selectedStore?.id) await loadData(selectedStore.id);
+      else await loadData();
     } catch (error: any) {
-      alert("Error updating order: " + error.message);
+      alert("Error updating order: " + (error?.message || String(error)));
     }
   };
 
@@ -205,7 +252,11 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
     if (!profile) return;
 
     const amount = parseFloat(cashoutAmount);
-    if (amount <= 0 || amount > (profile.available_balance || 0)) {
+    if (
+      isNaN(amount) ||
+      amount <= 0 ||
+      amount > (profile.available_balance || 0)
+    ) {
       alert("Invalid amount");
       return;
     }
@@ -220,9 +271,9 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
       alert("Cashout request submitted successfully!");
       setCashoutAmount("");
       setShowCashoutForm(false);
-      loadData();
+      await loadData(selectedStore?.id);
     } catch (error: any) {
-      alert("Error submitting cashout: " + error.message);
+      alert("Error submitting cashout: " + (error?.message || String(error)));
     }
   };
 
@@ -260,7 +311,28 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Vendor Dashboard</h1>
-        <p className="text-gray-600">{store?.name}</p>
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Store
+          </label>
+          <select
+            value={selectedStore?.id || ""}
+            onChange={async (e) => {
+              const val = e.target.value;
+              const store = stores.find((s) => s.id === val) || null;
+              setSelectedStore(store);
+              // pass the new store id to loadData so it fetches data for the correct store
+              await loadData(val);
+            }}
+            className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            {stores.map((store) => (
+              <option key={store.id} value={store.id}>
+                {store.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -445,8 +517,7 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
                     onClick={() => setSelectedOrder(order)}
                     className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition text-sm"
                   >
-                    <Truck className="w-4 h-4 inline mr-1" />
-                    Ship Order
+                    <Truck className="w-4 h-4 inline mr-1" /> Ship Order
                   </button>
                 )}
                 {order.status === "shipped" && (
@@ -454,8 +525,8 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
                     onClick={() => updateOrderStatus(order.id, "delivered")}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
                   >
-                    <CheckCircle className="w-4 h-4 inline mr-1" />
-                    Mark as Delivered
+                    <CheckCircle className="w-4 h-4 inline mr-1" /> Mark as
+                    Delivered
                   </button>
                 )}
                 {(order.status === "pending" ||
@@ -736,8 +807,7 @@ export function VendorDashboardPage({ onNavigate }: VendorPageProps = {}) {
                   }}
                   className="flex-1 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition font-semibold"
                 >
-                  <Truck className="w-5 h-5 inline mr-2" />
-                  Confirm Shipment
+                  <Truck className="w-5 h-5 inline mr-2" /> Confirm Shipment
                 </button>
                 <button
                   onClick={() => setSelectedOrder(null)}
